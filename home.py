@@ -60,7 +60,7 @@ def app():
             generate_hi_header_aligned("2","Hi! Welcome to opTEAMize!")
             generate_hi_header_aligned("3","opTEAMize is an end-to-end solution for football analysts, to make their scouting process optimal for the next season")
             show_st_image(img_file_name='opteamize.png', caption='Connecting the dots')
-            generate_hi_header("8", "Our belief is that the coaching staff knows which characteristics of a player they seek at each position. "
+            generate_hi_header("8", "We beleive that the coaching staff knows which characteristics of a player they seek at each position. "
                                             "So we developed a flexible system that allows the analyst to adjust the importance of each event of the game for each position,"
                                             " and by doing so, our algorithm will rank the players based on your particular requirements")
             generate_hi_header("8", "In the second stage, you select your candidates for the next season, as well as your current players. Our optimization model will take into account:")

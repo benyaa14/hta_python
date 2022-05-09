@@ -47,7 +47,7 @@ def read_dfs(position_to_analyze, mycursor, df_prior, player_in_game_table_name=
     return df, pos_df, df_prior, likelihood_df, df_weights, df_weights_likelihood
 
 
-def generate_likelihood_df(df, shadow_atts_list=['shadowMax', 'shadowMean', 'shadowMin']):
+def generate_likelihood_df(df, shadow_atts_list=['shadowMax', 'shadowMean', 'shadowMin','player_id']):
     """ Gets dataframe: zscores for each iteration for all attributes. index: iterations, columns: attributes
     return: likelihhod df- index: counter, columns: attribute,mean_l,	std_l,	n_l.
     The rejected columns are droped"""
@@ -68,8 +68,7 @@ def generate_weights_for_relevant_attributes(df, relevant_atts_for_pos: list):
      return: dictionary : {attribute:weight} """
 
     df_relevant_atts_to_weight = df[df['attribute'].isin(relevant_atts_for_pos)].copy()
-    df_relevant_atts_to_weight['normalized_z'] = df_relevant_atts_to_weight['post_mean'] / df_relevant_atts_to_weight[
-        'post_std']
+    df_relevant_atts_to_weight['normalized_z'] = df_relevant_atts_to_weight['post_mean'] # this is an old version: / df_relevant_atts_to_weight['post_std']
     sum_z = df_relevant_atts_to_weight['normalized_z'].sum()
     df_relevant_atts_to_weight['weight'] = df_relevant_atts_to_weight['normalized_z'] / sum_z
     d_att_to_weight = df_relevant_atts_to_weight.set_index('attribute')['weight'].to_dict()
@@ -115,7 +114,7 @@ def generate_prior_likelihood_posterior_df_normal2_model(df_prior, likelihood_df
     like_nulls_list = list(df_posterior[df_posterior['mean_l'].isnull()].index)
     prior_nulls_list = list(df_posterior[df_posterior['mean_p'].isnull()].index)
     like_nulls_list = list(set(like_nulls_list) - {'shadowMax', 'shadowMean', 'shadowMin'})
-    if len(like_nulls_list) > 0:  # TODO: write this messege as streamlit gui
+    if len(like_nulls_list) > 0:
         st.info(f"The following attributes were not rated in the likelihood (boruta) process\n: {like_nulls_list}")
     if len(prior_nulls_list) > 0:
         st.info(f"The following attributes were not rated in the prior (team's) process\n {prior_nulls_list}")
@@ -129,7 +128,7 @@ def update_atts_to_weight_file(att_to_weight_dict, df_weights, position_to_analy
     df_weights[position_to_analyze] = df_weights['attribute'].apply(
         lambda x: att_to_weight_dict[x] if x in att_to_weight_dict else 0)
     new_columns_to_weight = list(
-        set(att_to_weight_dict) - set(df_weights['attribute']))  # ceck if there are new attributes to add
+        set(att_to_weight_dict) - set(df_weights['attribute']))  # check if there are new attributes to add
     if len(new_columns_to_weight) > 0:  # There are new attributes in att_to_weight_dict
         print("new attributes will be added")
         for col in new_columns_to_weight:

@@ -407,7 +407,7 @@ def update_position_and_all_position_columns(mydb, mycursor, new_player_table_up
             for col_to_update in ['all_positions', 'position']:
                 update_record_to_sql(mydb, mycursor, table_name=PLAYER_TABLE, col_name_to_set=col_to_update,
                                      value_to_update=json.dumps(row[col_to_update]), index_cols=['p_id'],
-                                     index_values=[row['p_id']], only_print_query=True)
+                                     index_values=[row['p_id']], only_print_query=False)
 
 
 def create_new_player_in_game_df(mycursor, all_players_in_game_df, player_in_game_table_name='player_in_game'):
@@ -481,18 +481,19 @@ def run(players_file_name_list, mydb, mycursor, update_teams_and_leagues=False, 
         if len(list(new_teams_table['t_id'].unique())) > 0:
             tr.run_team_in_league_matching(team_ids=list(new_teams_table['t_id'].unique()))
 
-        new_player_name = list(new_player_table_updated_positions_count_new_players_to_append['p_name'].unique())
-        for player_name in stqdm(new_player_name):
-            transfermarket_data = tr.get_player_data(player_name)
-            if transfermarket_data is not None and str(transfermarket_data) != 'nan':
-                if 'Name in home country:' in transfermarket_data:
-                    del transfermarket_data['Name in home country:']
-            else:
-                transfermarket_data = 'Null'
-            p_id = new_player_table_updated_positions_count_new_players_to_append[
-                new_player_table_updated_positions_count_new_players_to_append['p_name'] == player_name].iloc[0]['p_id']
-            update_record_to_sql(mydb, mycursor, 'player', 'transfermarket_data', f""" "{transfermarket_data}" """,
-                                 ['p_id'], [p_id], False)
+        # old version:
+        # new_player_name = list(new_player_table_updated_positions_count_new_players_to_append['p_name'].unique())
+        # for player_name in stqdm(new_player_name):
+        #     transfermarket_data = tr.get_player_data(player_name)
+        #     if transfermarket_data is not None and str(transfermarket_data) != 'nan':
+        #         if 'Name in home country:' in transfermarket_data:
+        #             del transfermarket_data['Name in home country:']
+        #     else:
+        #         transfermarket_data = 'Null'
+        #     p_id = new_player_table_updated_positions_count_new_players_to_append[
+        #         new_player_table_updated_positions_count_new_players_to_append['p_name'] == player_name].iloc[0]['p_id']
+        #     update_record_to_sql(mydb, mycursor, 'player', 'transfermarket_data', f""" "{transfermarket_data}" """,
+        #                          ['p_id'], [p_id], False)
             st.success("Done!")
 
 

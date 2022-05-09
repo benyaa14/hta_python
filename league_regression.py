@@ -166,7 +166,7 @@ def run_regression_app_test(mydb, mycursor, league, position, update_db=False):
         return False, False
     leagues = read_all_table(mycursor, LEAGUE_TABLE)
     all_games = read_all_table(mycursor, PLAYER_IN_GAME_TABLE)
-    weights = read_all_table(mycursor, WEIGHTS_TABLE)
+    weights = read_all_table(mycursor, LIKELIHOOD_WEIGHTS_TABLE) # todo: changed to likelihood weights --> test it
     til_table = read_all_table(mycursor, TEAM_IN_LEAGUE_TABLE)
     weights.replace('Ñ\x81hances_created', 'сhances_created', inplace=True)
     if 'Select' in league or 'Select' in position:

@@ -12,6 +12,7 @@ import reg_app as rea
 import db_manual_updates as dbmu
 import players_comparison_app as pca
 import update_player_team_league as uptl
+import optimization_inputs as oi
 from streamlit_option_menu import option_menu
 
 
@@ -46,7 +47,7 @@ class MultiApp:
         # app['function']()
         with st.sidebar:
             app_title = option_menu("Main Menu", self.apps_name,
-                                    icons=['house-fill','cloud-upload', 'sliders','diagram-3-fill','bezier2','bar-chart-line','server','file-person'], menu_icon="cast")
+                                    icons=['house-fill','cloud-upload', 'sliders','diagram-3-fill','bezier2','bar-chart-line','server','file-person','boxes'], menu_icon="cast")
 
         for app_dict in self.apps:
             if app_dict['title'] == app_title:
@@ -62,6 +63,8 @@ app.add_app("Run regression", rea.app)
 app.add_app("Players ranking comparison", pca.app)
 app.add_app("Update DB manually", dbmu.app)
 app.add_app("Update player table", uptl.app)
+app.add_app("Optimization model", oi.app)
+
 
 
 if __name__ == '__main__':

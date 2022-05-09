@@ -135,6 +135,7 @@ def read_all_relevant_tables_for_player_table_enhancments(mycursor):
     df_instat = read_all_table(mycursor, INSTAT_DATA_TABLE)
     teams_df = read_all_table(mycursor, TEAM_TABLE_NAME)
     players_trans = read_all_table(mycursor, PLAYERS_TRANSFERMARKET_TABLE)
+    players_trans = find_updated_records_in_instat_data(players_trans, gb_cols = ['name','position','team'])
     player_df = read_all_table(mycursor, PLAYER_TABLE)
     pig_df = read_all_table(mycursor, PLAYER_IN_GAME_TABLE)
     return df_instat, teams_df, players_trans, player_df, pig_df
@@ -389,7 +390,6 @@ def run_player_table_enhancments(mydb, mycursor):
 
     matched_players, duplicate_players_to_split_in_player_in_game_later, didnt_match = generate_groups_of_dfs_to_match(
         pig_df, df_instat, player_df)
-    # todo: Write function to get updated transfermarket (like we did in instat table)
     d_instat_team_to_trans_team = add_transfermarket_data(players_trans, df_instat, matched_players)
 
     df_to_update = matched_players.apply(lambda x: get_final_df_to_update_db(x, d_instat_team_to_trans_team), axis=1,
@@ -423,7 +423,7 @@ def run_player_table_enhancments(mydb, mycursor):
         update_record_to_sql_many_values(mydb, mycursor, 'player', cols_name_to_set=all_cols_to_set,
                                          values_to_update=vals_to_update,
                                          index_cols=['p_id'],
-                                         index_values=[_id], only_print_query=True) #todo: change to false
+                                         index_values=[_id], only_print_query=False)
     st.success('Updated DB')
     return duplicate_players_to_split_in_player_in_game_later,didnt_match
 

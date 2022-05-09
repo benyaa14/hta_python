@@ -8,24 +8,9 @@ HOST = "hta-project.cf9mllj1rhry.us-east-2.rds.amazonaws.com"
 USER = 'Sagi'
 PASSWORD = "HTAproject2022"
 DB = 'hta_project'
-
+import time
 
 now = dt.datetime.now().date()
-
-# # If config works - delete------------------
-# POSITIONS = ["LD", "LM", "RM", "RD", "DM", "CM", "CD", "F"]
-# LEAGUE_TABLE = 'league'
-# PLAYER_IN_GAME_TABLE = 'player_in_game'
-# WEIGHTS_TABLE = 'att_to_weight'
-# LIKELIHOOD_WEIGHTS_TABLE ='att_to_weight_likelihood'
-# TEAM_IN_LEAGUE_TABLE = 'team_in_league'
-# GAME_RANK_COL = 'game_rank'
-# PRIMARY_KEYS_PLAYER_IN_GAME = ["player_id","game_date"]
-# POSITION_COL = 'position'
-# POSTERIOR_RANK = 'game_rank_posterior'
-# LIKELIHOOD_RANK = 'game_rank_likelihood'
-# REDUCE_RATING_COLUMNS = ['red_cards']
-#---------------------------------------------
 
 
 def read_all_table(mycursor, table_name):
@@ -42,10 +27,11 @@ def return_rank(row, weights):
     sum = 0
     for k, v in d_w_to_att.items():
         if k not in d_w_to_att or k not in row:
-            print(k,"not in att_to_weight or not in row")
+            # print(k,"not in att_to_weight or not in row")
             continue
         if k in REDUCE_RATING_COLUMNS:
-            sum -= row[k] * float(d_w_to_att[k])
+            pass
+            #old version: sum -= row[k] * float(d_w_to_att[k])
         else:
             # try:
             sum += row[k] * float(d_w_to_att[k])
@@ -115,13 +101,24 @@ def get_normalized_ranks(df,weights_,col_to_set_new_rank,game_rank_col=None):
     df[col_to_set_new_rank] = df.apply(lambda x: return_rank(x, weights_), axis=1)
     if game_rank_col!= None:
         df[game_rank_col] = df[col_to_set_new_rank]
-    # Normalize
-    mean_rank, std_rank = df[col_to_set_new_rank].mean(), df[col_to_set_new_rank].std()
-    df[col_to_set_new_rank] = df[col_to_set_new_rank].apply(
-        lambda x: normalization_x(x, mean_rank, std_rank))
+
+
+    # Normalize new (by position)
+    # ------------------------
+    pos_to_mean_dict,pos_to_std_dict =  list(df.groupby('position').agg({col_to_set_new_rank:
+                                                                             ['mean','std']}).to_dict().values())
+
+    df[col_to_set_new_rank] = df.apply(lambda x: normalization_x(x[col_to_set_new_rank],
+                                                                 pos_to_mean_dict[x['position']],
+                                                                 pos_to_std_dict[x['position']]), axis=1)
+
     return df
 
-
+def normalize_features_per_pos(df,pos,col_to_norm):
+    df_position=df[df['position']==pos].copy()
+    for col in col_to_norm:
+        df_position[col]=(df_position[col] - df_position[col].mean()) / df_position[col].std()
+    return df_position
 
 def run_rate_players_app(rank_all_players = False,rank_likelihood = True):
     mydb = mysql.connector.connect(
@@ -137,20 +134,38 @@ def run_rate_players_app(rank_all_players = False,rank_likelihood = True):
         all_games[GAME_RANK_COL] = None
     #todo: change the normalization over all ranks: all_gams[mean] all_gams[std]
     #todo: if we rank part of the games, apply standartization over all ranks
-    # todo: rank all players with standatization by position!!
 
-    null_game_rank_df = all_games[(all_games[POSTERIOR_RANK].isnull()) | (all_games[LIKELIHOOD_RANK].isnull()) | (all_games[GAME_RANK_COL].isnull())].copy()
-    get_normalized_ranks(null_game_rank_df,weights,POSTERIOR_RANK,GAME_RANK_COL)
+    null_game_rank_df = all_games[(all_games[POSTERIOR_RANK].isnull()) |
+                                  (all_games[LIKELIHOOD_RANK].isnull()) |
+                                  (all_games[GAME_RANK_COL].isnull())].copy()
+
+    #normalize columns of performance in game
+    col_to_norm = list(null_game_rank_df.drop(['player_id', 'game_date', 'opponent_id', 'position','date_downloaded'], axis=1).columns)
+    normalize_df_list = []
+    for pos in POSITIONS:
+        normalize_df_list.append(normalize_features_per_pos(null_game_rank_df, pos,col_to_norm))
+    normalize_df = pd.concat(normalize_df_list)
+
+    # normalize ranks
+    get_normalized_ranks(normalize_df,weights,POSTERIOR_RANK,GAME_RANK_COL)
 
     if rank_likelihood:
-        get_normalized_ranks(null_game_rank_df, likelihood_weights, LIKELIHOOD_RANK)
+        get_normalized_ranks(normalize_df, likelihood_weights, LIKELIHOOD_RANK)
     print('Algorithm is done')
+    data = []
+    stmt = f"UPDATE {PLAYER_IN_GAME_TABLE} SET game_rank = %s , game_rank_posterior = %s , game_rank_likelihood = %s  WHERE player_id = %s AND game_date =  %s" #"INSERT INTO employees (first_name, hire_date) VALUES (%s, %s)"
     for i, row in stqdm(null_game_rank_df.iterrows(), total=null_game_rank_df.shape[0]):
-        update_record_to_sql_many_values(mydb, mycursor, table_name=PLAYER_IN_GAME_TABLE, cols_name_to_set=[GAME_RANK_COL,POSTERIOR_RANK,LIKELIHOOD_RANK],
-                             values_to_update=[row[GAME_RANK_COL],row[POSTERIOR_RANK],row[LIKELIHOOD_RANK]], index_cols=PRIMARY_KEYS_PLAYER_IN_GAME,
-                             index_values=row[PRIMARY_KEYS_PLAYER_IN_GAME].to_list(), only_print_query=False)
+        data.append((row[GAME_RANK_COL],row[POSTERIOR_RANK],row[LIKELIHOOD_RANK],row[PRIMARY_KEYS_PLAYER_IN_GAME[0]],str(row[PRIMARY_KEYS_PLAYER_IN_GAME[1]])))
+        # update_record_to_sql_many_values(mydb, mycursor, table_name=PLAYER_IN_GAME_TABLE, cols_name_to_set=[GAME_RANK_COL,POSTERIOR_RANK,LIKELIHOOD_RANK],
+        #                      values_to_update=[row[GAME_RANK_COL],row[POSTERIOR_RANK],row[LIKELIHOOD_RANK]], index_cols=PRIMARY_KEYS_PLAYER_IN_GAME,
+        #                      index_values=row[PRIMARY_KEYS_PLAYER_IN_GAME].to_list(), only_print_query=True)
+    print("writing to DB")
+    start = time.time()
+    mycursor.executemany(stmt, data)
+    end = time.time()
+    print(end - start)
+    mydb.commit()
     mydb.close()
-    return len(null_game_rank_df)
-
+    return len(normalize_df)
 
 
