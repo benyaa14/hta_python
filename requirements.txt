@@ -1,3 +1,5 @@
+# dataclasses is a problematic package
+
 altair==4.1.0
 appnope==0.1.2
 argon2-cffi==21.3.0
@@ -18,6 +20,7 @@ cffi==1.15.0
 charset-normalizer==2.0.12
 click==7.1.2
 cycler==0.11.0
+#dataclasses==0.8
 decorator==5.1.1
 defusedxml==0.7.1
 docopt==0.6.2
@@ -65,6 +68,7 @@ patsy==0.5.2
 pexpect==4.8.0
 pickleshare==0.7.5
 Pillow==8.4.0
+pip==21.3.1
 pipreqs==0.4.11
 plotly==5.6.0
 prometheus-client==0.13.1
@@ -89,6 +93,7 @@ scipy==1.5.4
 seaborn==0.11.2
 semver==2.13.0
 Send2Trash==1.8.0
+setuptools==59.6.0
 six==1.16.0
 smmap==5.0.0
 soupsieve==2.3.1
@@ -96,6 +101,7 @@ SQLAlchemy==1.4.31
 statsmodels==0.12.2
 stqdm==0.0.4
 streamlit==1.8.1
+streamlit-lottie==0.0.3
 streamlit-option-menu==0.3.2
 sympy==1.9
 tenacity==8.0.1
