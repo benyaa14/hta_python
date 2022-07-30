@@ -105,7 +105,7 @@ def run_optimization(candidates_df,salary,VETO_PLAYERS,BUDGET,lambda_,
     # -----------
     # Variables
     # -----------
-    m1 = gp.Model('wafgdhh')
+    m1 = gp.Model('opteamize')
     x = m1.addVars(combinations,vtype = GRB.BINARY, name="player")
     #-----------
     #constrains
@@ -401,6 +401,8 @@ def plot_pitch(df):
                   stripe_color='#c2d59d', stripe=True)  # optional stripes
     fig, ax = pitch.draw(figsize=(9, 5), constrained_layout=True, tight_layout=False)
     fig.gca().invert_yaxis()
+    Candidate = plt.scatter(25, 30, color='lightsteelblue')
+    Existing = plt.scatter(25, 30, color='firebrick')
     for index, row in df.iterrows():
         if row['new_player'] == 1:
             lineup_color = 'lightsteelblue'
@@ -409,8 +411,6 @@ def plot_pitch(df):
         pitch.scatter(row['x_lineup'], row['y_lineup'], s=600, color=lineup_color, edgecolors='black', ax=ax)
         pitch.annotate(text=row['p_name'], xytext=(row['x_lineup'] - 2, row['y_lineup'] + 6), xy=(80, 80), ha='center',
                        fontweight='bold', style='italic', va='top', ax=ax)
-    Candidate = plt.scatter(25, 30, color='lightsteelblue')
-    Existing = plt.scatter(25, 30, color='firebrick')
     plt.legend((Candidate, Existing),
                ('Candidate player', 'Existing player'),
                scatterpoints=1,
@@ -519,6 +519,13 @@ def app(your_team_id = 12):
             sal_budget = salary_budget(form)
             teta = form.number_input("Maximum number of foreign players in the team",0,11,2)
 
+
+            form.subheader('Minimum height for at least one player in a position')
+            HEIGHT = None
+            height_pos = form.selectbox('Select position',['Select position'] + POSITIONS)
+            if height_pos != 'Select position':
+                HEIGHT = form.number_input('Select minimum height in CM',0,300,0,1)
+
             d_min_max_pos = dict()
             form.subheader('Number of players in team')
             for type_ in ['Max', 'Min']:
@@ -526,13 +533,6 @@ def app(your_team_id = 12):
                                 min_value=MIN_PLAYERS_IN_TEAM,
                                 default_val=10)
                 d_min_max_pos[("team", type_)] = val
-            form.subheader('Minimum height for at least one player in a position')
-            HEIGHT = None
-            height_pos = form.selectbox('Select position',['Select position'] + POSITIONS)
-            if height_pos != 'Select position':
-                HEIGHT = form.number_input('Select minimum height in CM',0,300,0,1)
-
-
 
 
 

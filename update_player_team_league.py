@@ -53,7 +53,7 @@ page_structure = [1, 3, 1]
 
 def show_st_image(img_file_name, caption=None):
     image = Image.open(img_file_name)
-    st.image(image, caption=caption)
+    st.image(image, caption=caption,use_column_width=True)
 
 
 def read_excel(file_name):
@@ -450,7 +450,7 @@ def app():
 
         with upload:
             st.header("A. External Data Enhancement")
-            st.markdown("When you will click `Update DB` the system will do the following process:")
+            st.markdown("When you click `Update DB` the system will do the following process:")
             st.markdown(
                 """<ol> <li>Read all Instat files and update <code> instat_player_data</code> table </li> <li> Scrape all leagues from <a href = "https://www.transfermarkt.co.uk/" >transfermarket.co.uk </a> and update <code>players_transfermarket</code> table </li></ol>""",
                 unsafe_allow_html=True)
@@ -462,10 +462,10 @@ def app():
 
         with update:
             st.header("B. Fuse The Data ")
-            st.markdown("When you will click `RUN!` the system will do the following process:")
+            st.markdown("When you click `RUN!` the system will do the following process:")
             st.markdown("""<ol> <li> Matching between player in <code>players</code> table to <code>instat_player_data</code></li> 
                                 <li> Matching between player in <code>players</code> table to <code>players_transfermarket</code>  </li>
-                                <li> Static data enhancement: updates the following columns: 
+                                <li> Static data enhancement, which updates the following columns: 
                                 <ul>
                                     <li> Nationality   </li> 
                                     <li> Market value   </li>

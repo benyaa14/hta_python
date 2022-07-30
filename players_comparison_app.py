@@ -157,8 +157,8 @@ def app():
     with col2_1:
         players_comp = st.container()
         with players_comp:
-            st.header('Players comparison')
-            st.write('Please select players to compare their rating dist')
+            st.header('Players ranking comparison')
+            st.write('Please select players to compare their performance')
             position = st.selectbox("Filter by position position", ['Select position', 'All positions'] + POSITIONS)
             if position != ALL_POSITIONS_STR:
                 joined_df = joined_df[joined_df['position'] == position]

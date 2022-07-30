@@ -41,12 +41,12 @@ def app():
     btn_reg = False
     with league_reg:
         correction_to_il = l_id = None
-        st.header('League rate modification')
+        st.header('League rate adjustment')
         show_st_image(img_file_name='reg.jpeg', caption="Let the machine do the work")
 
         st.subheader(
-            "Select the position and league to run the regression\n The algorithm will run and then click 'Apply'")
-        st.info("Leagues without any correction:" + str(get_leagues_without_correction(df_league)))
+            "Select the position and league you would like to adjust\n")
+        st.info("Leagues without any adjustment:" + str(get_leagues_without_correction(df_league)))
         league = st.selectbox("Select league", ['Select league'] + return_league_names_list(df_league))
         if league != 'Select league':
             missing_pos = lr.find_missing_corrected_positions_in_the_league(mycursor, league)

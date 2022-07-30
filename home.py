@@ -21,11 +21,11 @@ def first_stage_html():
     generate_ordered_list(list_=[
         'Download from Instat all of the performances of the player of interest during the last two years per game as Excel files'])
     show_st_image(img_file_name='instat_player_page.png', caption='Player matches')
-    generate_ordered_list(["make sure you download only league games"])
+    generate_ordered_list(["Make sure you download only league games"])
     show_st_image(img_file_name='selection_matches.png', caption='Matches selection')
     generate_ordered_list([
-                              "Click 'Upload player in game files' and upload the excel you just downloaded. The system will push the new data to the DB",
-                              "Don't worry, once you upload the new data, it will be saved and you won't have to download it again."])
+                              "Click 'Upload player in game files' and upload the Excel you just downloaded. The system will push the new data to the DB",
+                              "Don't worry, once you upload the new data, it will be saved and you won't have to download it again"])
 
 def sec_stage_html():
     generate_ordered_list(list_=[
@@ -44,7 +44,7 @@ def fourth_stage_html():
     generate_ordered_list([
                               "Probably you're already aware that there are differences between leagues, one can excel at defence play while the other can excel at offence play"
                               , "Furthermore, there are leagues that are superior to the others in every aspect",
-                              'opTEAMize developed a tool that will find the level different'
+                              'opTEAMize developed a tool that will find the level difference '
                               'for each league in each position and give you the opportunity to analyze it too',
                               'You can decide based on the output of the regression if you would like to give the other league extra/minus points for their ratings'])
     show_st_image(img_file_name='regression_al_england.png', caption='First step')
@@ -60,12 +60,12 @@ def app():
             generate_hi_header_aligned("2","Hi! Welcome to opTEAMize!")
             generate_hi_header_aligned("3","opTEAMize is an end-to-end solution for football analysts, to make their scouting process optimal for the next season")
             show_st_image(img_file_name='opteamize.png', caption='Connecting the dots')
-            generate_hi_header("8", "We beleive that the coaching staff knows which characteristics of a player they seek at each position. "
-                                            "So we developed a flexible system that allows the analyst to adjust the importance of each event of the game for each position,"
-                                            " and by doing so, our algorithm will rank the players based on your particular requirements")
+            generate_hi_header("8", "We believe that the coaching staff knows which characteristics of a player they seek for each position. "
+                                            "Therefore, we developed a flexible system that allows the analyst to adjust the importance of each event of the game to each position,"
+                                            " and by doing so, our algorithm will rank the players based on your particular requirements.")
             generate_hi_header("8", "In the second stage, you select your candidates for the next season, as well as your current players. Our optimization model will take into account:")
             generate_ordered_list(list_ = ["Players' customized rank" , "Wage", "Additional payments","Team's budget", "Many other constraints and needs"])
-            generate_hi_header("8", "And, will help the coaching staff make one of the most complex decisions a team can make:<code>  Which players to acquire? Which players to sell? </code> ")
+            generate_hi_header("8", "And it will help the coaching staff make one of the most complex decisions a team can make:<code>  Which players to acquire? Which players to sell? </code> ")
 
             generate_hi_header_aligned("1" ,"In one word: opTEAMize")
 

@@ -1,7 +1,6 @@
 import mysql.connector
 from main_functions import *
 import streamlit as st
-
 d_std_rate_to_divide_number = {1: 1, 2: 4, 3: 9, 4: 14, 5: 25, 6: 70}
 
 

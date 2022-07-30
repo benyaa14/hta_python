@@ -499,7 +499,7 @@ def run(players_file_name_list, mydb, mycursor, update_teams_and_leagues=False, 
 
 def show_st_image(img_file_name, caption=None):
     image = Image.open(img_file_name)
-    st.image(image, caption=caption)
+    st.image(image, caption=caption,use_column_width=True)
 
 
 # header, player_in_game, update_weights, rank_players = containers()
@@ -525,7 +525,7 @@ def app():
         with player_in_game:
             st.subheader("Upload new 'player in game' files")
             uploaded_files = st.file_uploader(label="Upload player in game files", accept_multiple_files=True)
-            btn_update_teams = st.checkbox("Would you like to update teams and 'team in league' tables")
+            btn_update_teams = st.checkbox("Would you like to update teams and 'team in league' tables?")
             btn_upload_files = st.button("Update DB")
             if btn_upload_files:
                 if len(uploaded_files) > 0:

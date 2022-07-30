@@ -58,7 +58,7 @@ def app():
 
             image = Image.open('opteamize.png')
 
-            st.image(image, caption='Connecting the dots')
+            st.image(image, caption='Connecting the dots',use_column_width=True)
             st.title('Update manually fields to the DB')
 
         with selection:
