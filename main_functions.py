@@ -1,8 +1,19 @@
 import pandas as pd
 import datetime as dt
 from sqlalchemy import create_engine
+import mysql.connector
 from config import *
 
+def connect_to_the_DB():
+    mydb = mysql.connector.connect(
+        host=HOST, user=USER, password=PASSWORD, database=DB
+    )
+    mycursor = mydb.cursor()
+    return mydb,mycursor
+
+def disconnect_from_the_db(mycursor,mydb):
+    mycursor.close()
+    mydb.close()
 
 def read_from_table(mycursor, table_name, query):
     mycursor.execute(query)
@@ -66,6 +77,7 @@ def update_record_to_sql_many_values(mydb, mycursor, table_name, cols_name_to_se
 
 def update_sql_table(table_name, df, index_col, if_exists='append'):
     engine = create_engine(f"mysql+pymysql://{USER}:{PASSWORD}@{HOST}/{DB}")
+
     # mycursor.execute(f"DROP TABLE {table_name}_test")
     df.set_index(index_col).to_sql(name=table_name, con=engine, if_exists=if_exists)
     # REMEMBERR!!! uncomment this section

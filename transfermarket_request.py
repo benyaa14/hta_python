@@ -55,28 +55,34 @@ def get_leagues_per_team(team):
     pageTree = requests.get(page, headers=headers)
     pageSoup = BeautifulSoup(pageTree.content, 'html.parser')
     teams = pageSoup.find_all("td", {"class": "hauptlink"})
-    first_teams_a = str(teams[0].find_all("a")[0])
-    idx_start = first_teams_a.find('a href=') + len('a href="')
-    team_url = first_teams_a[idx_start:].split(" ")[0][:-1]
-    page = "https://www.transfermarkt.co.uk" + team_url
-    pageTree = requests.get(page, headers=headers)
-    pageSoup = BeautifulSoup(pageTree.content, 'html.parser')
-    d_values = pageSoup.find_all("span", {"class": "dataValue"})
-    try:
-        league_url = d_values[-1].a.get('href')
-        page = "https://www.transfermarkt.co.uk" + league_url
+
+    if len(teams) > 0 :
+        first_teams_a = teams[0].find_all("a")
+        if len(first_teams_a) > 0:
+            first_teams_a = str(first_teams_a[0])
+
+        idx_start = first_teams_a.find('a href=') + len('a href="')
+        team_url = first_teams_a[idx_start:].split(" ")[0][:-1]
+        page = "https://www.transfermarkt.co.uk" + team_url
         pageTree = requests.get(page, headers=headers)
         pageSoup = BeautifulSoup(pageTree.content, 'html.parser')
-        table_leagues = pageSoup.find_all("table", {"class": "items"})
-        if len(table_leagues) == 1:
-            df_leagues = pd.read_html(str(table_leagues[0]))[0]
-            df_leagues['t_name'] = team
-            return df_leagues[['Season', 'League.1', 't_name']]
-        else:
-            return (['ERROR!!!!!!'])
-    except:
-        return (['Something went wrong'])
-
+        d_values = pageSoup.find_all("span", {"class": "dataValue"})
+        try:
+            league_url = d_values[-1].a.get('href')
+            page = "https://www.transfermarkt.co.uk" + league_url
+            pageTree = requests.get(page, headers=headers)
+            pageSoup = BeautifulSoup(pageTree.content, 'html.parser')
+            table_leagues = pageSoup.find_all("table", {"class": "items"})
+            if len(table_leagues) == 1:
+                df_leagues = pd.read_html(str(table_leagues[0]))[0]
+                df_leagues['t_name'] = team
+                return df_leagues[['Season', 'League.1', 't_name']]
+            else:
+                return (['ERROR!!!!!!'])
+        except:
+            return (['Something went wrong'])
+    else:
+        return (['Something went wrong len(teams) == 0 '])
 
 def get_league_id_from_league_transfermarket_name(l_transfer, leagues_df, generate_new_league_if_null):
     league = leagues_df[leagues_df['l_name_transfermarket'] == l_transfer]['l_id']
@@ -103,7 +109,7 @@ def add_db_columns(til_transfer_df, teams_df, team, leagues_df, leagues_transfer
     # d_transfer_name_to_id = leagues_df[leagues_df['l_name_transfermarket'].isin(leagues_transfer_name_in_the_db)][['l_name_transfermarket','l_id']].set_index('l_name_transfermarket').to_dict()['l_id']
     print(d_transfer_name_to_id)
     til_transfer_df['season_y'] = til_transfer_df['Season'].apply(lambda x: int('20' + x.split('/')[0]))
-    til_transfer_df['t_id'] = teams_df[teams_df['transfermarket_team_name'] == team]['t_id'].iloc[0]
+    til_transfer_df['t_id'] = teams_df[teams_df['t_name_transfer'] == team]['t_id'].iloc[0]
     til_transfer_df['l_id'] = til_transfer_df['League.1'].apply(
         lambda x: d_transfer_name_to_id[x] if x in d_transfer_name_to_id else None)
     return d_transfer_name_to_id
@@ -111,7 +117,7 @@ def add_db_columns(til_transfer_df, teams_df, team, leagues_df, leagues_transfer
 
 def run_team_name_matching(match_all_teams=False):
     teams_df = read_all_table(mycursor, TEAM_TABLE_NAME)
-    teams = teams_df['t_name'].to_list()
+    teams = teams_df['t_name_transfer'].to_list()
     # Find new teams that do not have transfermarket_team_name
     if not match_all_teams:
         teams = teams_df[teams_df['transfermarket_team_name'].isnull()]['t_name'].to_list()
@@ -132,22 +138,24 @@ def run_team_name_matching(match_all_teams=False):
     print(f"Teams to update manually:\n {to_tag_manually}")
     return to_tag_manually
 
-
-def run_team_in_league_matching(team_ids: list = [], years_lookback=3):
+def run_team_in_league_matching(team_ids: list = [] ,years_lookback=3):
     # Read
     teams_df = read_all_table(mycursor, TEAM_TABLE_NAME)
     til_df = read_all_table(mycursor, TEAM_IN_LEAGUE_TABLE)
     leagues_df = read_all_table(mycursor, LEAGUE_TABLE)
-    leagues_transfer_name_in_the_db = list(leagues_df['l_name_transfermarket'].unique())
-    last_league_index = leagues_df['l_id'].max()
+    leagues_transfer_name_in_the_db = list(leagues_df['l_name'].unique())
+    if len(leagues_df) == 0 : # todo: delete later
+        last_league_index = 0 # todo: delete later
+    else: # todo: delete later
+        last_league_index = leagues_df['l_id'].max()
     new_til = pd.DataFrame(columns=['t_id', 'season_y', 'l_id'])
-    d_transfer_name_to_id = leagues_df[leagues_df['l_name_transfermarket'].isin(leagues_transfer_name_in_the_db)][
-        ['l_name_transfermarket', 'l_id']].set_index('l_name_transfermarket').to_dict()['l_id']
+    d_transfer_name_to_id = leagues_df[leagues_df['l_name'].isin(leagues_transfer_name_in_the_db)][
+        ['l_name', 'l_id']].set_index('l_name').to_dict()['l_id']
     if len(team_ids) > 0:
-        teams = list(teams_df[teams_df['t_id'].isin(team_ids)]['transfermarket_team_name'].unique())
+        teams = list(teams_df[teams_df['t_id'].isin(team_ids)]['t_name_transfer'].unique())
     else:
-        teams = list(teams_df['transfermarket_team_name'].unique())
-    for i, team in stqdm(enumerate(teams)):
+        return
+    for i, team in stqdm(enumerate(teams),total=len(teams)):
 
         til_transfer_df = get_leagues_per_team(team)[
                           :years_lookback]  # dataframe in this format: til_transfer_df[['Season','League.1','t_name']] or ['Something went wrong'] or ['ERROR!!!!!!']
@@ -163,17 +171,16 @@ def run_team_in_league_matching(team_ids: list = [], years_lookback=3):
                 new_leagues = new_leagues.groupby('League.1').agg({'League.1': 'first'})
                 new_leagues['l_id'] = np.arange(last_league_index + 1, last_league_index + 1 + len(new_leagues))
 
-                new_leagues['l_name_transfermarket'] = new_leagues['League.1']
-                new_leagues['l_name'] = new_leagues['l_name_transfermarket']
+                new_leagues['l_name'] = new_leagues['League.1']
                 new_leagues['country'] = None
                 new_leagues['correction_to_il'] = None
                 # Add to the league df
-                df_to_concat = new_leagues[['l_id', 'l_name', 'country', 'correction_to_il', 'l_name_transfermarket']]
+                df_to_concat = new_leagues[['l_id', 'l_name', 'country', 'correction_to_il']]
                 leagues_df = pd.concat([leagues_df, df_to_concat])
                 last_league_index = leagues_df['l_id'].max()
                 # Insert new l_ids ids to til_transfer_df
                 d_transfer_name_to_id = \
-                    leagues_df[['l_name_transfermarket', 'l_id']].set_index('l_name_transfermarket').to_dict()['l_id']
+                    leagues_df[['l_name', 'l_id']].set_index('l_name').to_dict()['l_id']
                 til_transfer_df['l_id'] = til_transfer_df["League.1"].apply(lambda x: d_transfer_name_to_id[x])
 
             print('After')
@@ -193,6 +200,7 @@ def run_team_in_league_matching(team_ids: list = [], years_lookback=3):
 
     old_leagues_df = read_all_table(mycursor, LEAGUE_TABLE)
     ids_to_insert = list(set(leagues_df['l_id'].unique()) - set(old_leagues_df['l_id'].unique()))
+    leagues_df.to_csv("NEW_league.csv")# todo: delete later
     update_sql_table(LEAGUE_TABLE, leagues_df[leagues_df['l_id'].isin(ids_to_insert)], 'l_id')
     print("leagues_df was updated")
 
@@ -206,11 +214,14 @@ def run_team_in_league_matching(team_ids: list = [], years_lookback=3):
         update_record_to_sql(mydb, mycursor, table_name=TEAM_IN_LEAGUE_TABLE,
                              col_name_to_set='l_id', value_to_update=row['l_id']
                              , index_cols=['t_id', 'season_y'], index_values=[row['t_id'], row['season_y']],
-                             only_print_query=False)
+                             only_print_query=True)
     new_records_til = new_til.merge(til_df, how='left',
                                     on=['t_id', 'season_y'])  # new records will be:  old_l_df == null
     new_records_til = new_records_til[new_records_til['old_l_id'].isnull()][['t_id', 'season_y', 'l_id']]
+
     print("NEW RECORDS TIL:")
+    print(new_records_til)
+    new_records_til.to_csv('NEW_til.csv')# todo: delete later
     print(new_records_til)
     update_sql_table(TEAM_IN_LEAGUE_TABLE, new_records_til, ['t_id', 'season_y'])
     print("TEAM_IN_LEAGUE_TABLE was updated")
@@ -334,6 +345,7 @@ def find_all_players_with_pos_in_team(team):
 
 
     return match
+
 
 
 

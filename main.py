@@ -478,22 +478,12 @@ def run(players_file_name_list, mydb, mycursor, update_teams_and_leagues=False, 
     if update_teams_and_leagues:
         st.info('Scrapping data from transfermarket')
         tr.run_team_name_matching()
-        if len(list(new_teams_table['t_id'].unique())) > 0:
-            tr.run_team_in_league_matching(team_ids=list(new_teams_table['t_id'].unique()))
+        query_to_find_teams_to_add_to_til_table = "select * from teams where (transfermarket_t_name_matching_score >= 60 or transfer_added_manually = 1 ) " \
+                                                  "and t_id  not in (select DISTINCT (t_id) from team_in_league)"
+        df_missing_teams_in_til_table = read_from_table(mycursor, TEAM_IN_LEAGUE_TABLE,query_to_find_teams_to_add_to_til_table)
+        if len(list(df_missing_teams_in_til_table['t_id'].unique())) > 0:
+            tr.run_team_in_league_matching(team_ids=list(df_missing_teams_in_til_table['t_id'].unique()))
 
-        # old version:
-        # new_player_name = list(new_player_table_updated_positions_count_new_players_to_append['p_name'].unique())
-        # for player_name in stqdm(new_player_name):
-        #     transfermarket_data = tr.get_player_data(player_name)
-        #     if transfermarket_data is not None and str(transfermarket_data) != 'nan':
-        #         if 'Name in home country:' in transfermarket_data:
-        #             del transfermarket_data['Name in home country:']
-        #     else:
-        #         transfermarket_data = 'Null'
-        #     p_id = new_player_table_updated_positions_count_new_players_to_append[
-        #         new_player_table_updated_positions_count_new_players_to_append['p_name'] == player_name].iloc[0]['p_id']
-        #     update_record_to_sql(mydb, mycursor, 'player', 'transfermarket_data', f""" "{transfermarket_data}" """,
-        #                          ['p_id'], [p_id], False)
             st.success("Done!")
 
 

@@ -4,10 +4,15 @@ PATH = 'new_files_to_update'
 # PATH_PLAYERS = '/content/gdrive/MyDrive/HTA project/Position and attributes analysis/files/league_to_update'
 
 # DB auth
-HOST = "hta-project.cf9mllj1rhry.us-east-2.rds.amazonaws.com"
+# HOST = "hta-project.cf9mllj1rhry.us-east-2.rds.amazonaws.com"
+HOST = "hta-project3.c4rdsjz7fetg.eu-west-2.rds.amazonaws.com"
 USER = 'Sagi'
 PASSWORD = "HTAproject2022"
-DB = 'hta_project'
+# DB = 'hta_project'
+DB = 'hta_project3'
+
+
+
 
 # Tables
 TEAM_TABLE_NAME = 'teams'
@@ -19,6 +24,10 @@ LIKELIHOOD_WEIGHTS_TABLE = 'att_to_weight_likelihood'
 PLAYER_TABLE = 'player'
 PLAYERS_TRANSFERMARKET_TABLE = 'players_transfermarket'
 INSTAT_DATA_TABLE = 'instat_player_data'
+GAME_ON_DATE = 'game_on_date'
+SQUAD_IN_SEASON = 'squad_in_season_transfer'
+PLAYER_IN_GAME_RAW_TABLE = 'player_in_game_raw'
+
 
 # Collumns
 GAME_RANK_COL = 'game_rank'
