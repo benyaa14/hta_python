@@ -27,10 +27,10 @@ def add_the_new_mean_and_std_to_prior(df_prior, likelihood_df):
 
 
 def read_dfs(position_to_analyze, mycursor, df_prior, player_in_game_table_name='player_in_game'):
-    att_zscores_file = "zscores_" + position_to_analyze
-    mycursor.execute(f"SELECT * FROM {att_zscores_file}")
-    df = pd.DataFrame(mycursor.fetchall(), columns=mycursor.column_names).set_index('row_names')
-    likelihood_df = generate_likelihood_df(df)
+    # att_zscores_file = "zscores_" + position_to_analyze
+    # mycursor.execute(f"SELECT * FROM {att_zscores_file}")
+    # df = pd.DataFrame(mycursor.fetchall(), columns=mycursor.column_names).set_index('row_names')
+    likelihood_df,df = generate_likelihood_df(position_to_analyze)
 
     if len(list(df_prior.columns)) != 3 or list(df_prior.columns) != ["attribute", "mean_p", "std_p"]:
         return ['csv prior error']
@@ -46,11 +46,14 @@ def read_dfs(position_to_analyze, mycursor, df_prior, player_in_game_table_name=
     return df, pos_df, df_prior, likelihood_df, df_weights, df_weights_likelihood
 
 
-def generate_likelihood_df(df, shadow_atts_list=['shadowMax', 'shadowMean', 'shadowMin','player_id']):
+def generate_likelihood_df(position_to_analyze, shadow_atts_list=['shadowMax', 'shadowMean', 'shadowMin','player_id']):
     """ Gets dataframe: zscores for each iteration for all attributes. index: iterations, columns: attributes
     return: likelihhod df- index: counter, columns: attribute,mean_l,	std_l,	n_l.
     The rejected columns are droped"""
-
+    mydb,mycursor = connect_to_the_DB()
+    att_zscores_file = "zscores_" + position_to_analyze
+    mycursor.execute(f"SELECT * FROM {att_zscores_file}")
+    df = pd.DataFrame(mycursor.fetchall(), columns=mycursor.column_names).set_index('row_names')
     mean_atts = df.T.mean(axis=1).to_frame()
     std_atts = df.T.std(axis=1).to_frame()
     count_atts = df.count().to_frame()
@@ -59,7 +62,8 @@ def generate_likelihood_df(df, shadow_atts_list=['shadowMax', 'shadowMean', 'sha
     df_likelihood = df_likelihood[df_likelihood['attribute'].isin(shadow_atts_list) == False]
     rejected_atts = list(df_likelihood[df_likelihood['std_l'].isnull()].index)  # TODO: check if we can clear thi row
     df_likelihood.drop(rejected_atts, inplace=True)
-    return df_likelihood
+    disconnect_from_the_db(mycursor,mydb)
+    return df_likelihood,df
 
 
 def generate_weights_for_relevant_attributes(df, relevant_atts_for_pos: list):
@@ -141,6 +145,7 @@ def update_atts_to_weight_file(att_to_weight_dict, df_weights, position_to_analy
 # position_to_analyze = 'CD'# position_to_analyze = position_selection.value
 def run(mydb, mycursor, position_to_analyze, prior_df, update_db=False):
     if position_to_analyze in POSITIONS:
+        mycursor = mydb.cursor()
         dfs = read_dfs(position_to_analyze, mycursor, prior_df)
         if len(dfs) == 1:  # There is problem with the prior df
             raise Exception(f"'{dfs[0]}'")

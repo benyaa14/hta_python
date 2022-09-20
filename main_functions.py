@@ -15,6 +15,14 @@ def disconnect_from_the_db(mycursor,mydb):
     mycursor.close()
     mydb.close()
 
+def get_tables_name():
+    mydb,mycursor = connect_to_the_DB()
+    mycursor.execute("SHOW TABLES")
+    tables = mycursor.fetchall()
+    if len(tables) > 0:
+        tables = [i[0].decode() for i in tables]
+    disconnect_from_the_db(mydb,mycursor)
+    return tables
 def read_from_table(mycursor, table_name, query):
     mycursor.execute(query)
     table = pd.DataFrame(mycursor.fetchall(), columns=mycursor.column_names)

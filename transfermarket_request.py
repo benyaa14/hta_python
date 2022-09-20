@@ -139,14 +139,15 @@ def run_team_name_matching(match_all_teams=False):
     return to_tag_manually
 
 def run_team_in_league_matching(team_ids: list = [] ,years_lookback=3):
+    mydb,mycursor = connect_to_the_DB()
     # Read
     teams_df = read_all_table(mycursor, TEAM_TABLE_NAME)
     til_df = read_all_table(mycursor, TEAM_IN_LEAGUE_TABLE)
     leagues_df = read_all_table(mycursor, LEAGUE_TABLE)
     leagues_transfer_name_in_the_db = list(leagues_df['l_name'].unique())
-    if len(leagues_df) == 0 : # todo: delete later
-        last_league_index = 0 # todo: delete later
-    else: # todo: delete later
+    if len(leagues_df) == 0 :
+        last_league_index = 0
+    else:
         last_league_index = leagues_df['l_id'].max()
     new_til = pd.DataFrame(columns=['t_id', 'season_y', 'l_id'])
     d_transfer_name_to_id = leagues_df[leagues_df['l_name'].isin(leagues_transfer_name_in_the_db)][

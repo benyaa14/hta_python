@@ -12,6 +12,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 from mplsoccer import Radar
+from main_new import get_season_from_date
 
 MIN_GAMES_TO_VIS = 10
 
@@ -19,6 +20,8 @@ mydb = mysql.connector.connect(
     host=HOST, user=USER, password=PASSWORD, database=DB
 )
 mycursor = mydb.cursor()
+
+
 
 pig_df = read_all_table(mycursor, PLAYER_IN_GAME_TABLE)
 player_df = read_all_table(mycursor, PLAYER_TABLE)
@@ -35,14 +38,14 @@ def generate_random_color():
     return color[0]
 
 def plot_lines(df, players_name: list, col_to_vis, league_df):#,colors):
-    df = df[df['p_name'].isin(players_name)].copy()
+    df = df[df['p_name_transfer'].isin(players_name)].copy()
     for rank in [LIKELIHOOD_RANK, POSTERIOR_RANK]:
         df[rank] = df.apply(lambda x: return_new_rank(x, league_df, rank), axis=1)
     df.sort_values('game_date', inplace=True)
     df['moving_avg_' + col_to_vis] = df.groupby('player_id')[col_to_vis].transform(
         lambda x: x.rolling(10,5).mean())
 
-    fig = px.line(df, x='game_date', y='moving_avg_' + col_to_vis, color='p_name',template="simple_white",color_discrete_sequence=colors
+    fig = px.line(df, x='game_date', y='moving_avg_' + col_to_vis, color='p_name_transfer',template="simple_white",color_discrete_sequence=colors
                   ,color_discrete_map = {players_name[i]: colors[i] for i in range(len(players_name))})
     fig.update_layout(
         title_text="Time series ranking"
@@ -85,14 +88,14 @@ def plot_lines(df, players_name: list, col_to_vis, league_df):#,colors):
     return fig
 
 def plot_dists(df, players_name: list, col_to_vis, league_df):
-    df = df[df['p_name'].isin(players_name)].copy()
+    df = df[df['p_name_transfer'].isin(players_name)].copy()
     for rank in [LIKELIHOOD_RANK, POSTERIOR_RANK]:
         df[rank] = df.apply(lambda x: return_new_rank(x, league_df, rank), axis=1)
     hist_data = []
     group_labels = []
     # colors = []
     for player_name in players_name:
-        hist_data.append(df[df['p_name'] == player_name][col_to_vis].to_list())
+        hist_data.append(df[df['p_name_transfer'] == player_name][col_to_vis].to_list())
         group_labels.append(player_name)
         # colors.append(generate_random_color())
 
@@ -111,7 +114,7 @@ def plot_dists(df, players_name: list, col_to_vis, league_df):
                           x=1
                       )
                       )
-    table_data = df[df['p_name'].isin(players_name)].groupby(['position', 'p_name']).agg({col_to_vis: ['mean', 'std', 'size']}).round(decimals=2).reset_index()
+    table_data = df[df['p_name_transfer'].isin(players_name)].groupby(['position', 'p_name_transfer']).agg({col_to_vis: ['mean', 'std', 'size']}).round(decimals=2).reset_index()
     table_data.columns = ['Position','Name','Mean','Std','#Games']
     cols = table_data.columns
     fig_table = ff.create_table(table_data)
@@ -146,12 +149,11 @@ def app():
     # player_df = read_all_table(mycursor, PLAYER_TABLE)
     # df_weights = read_all_table(mycursor,WEIGHTS_TABLE)
 
-    pig_df['season'] = pig_df['game_date'].apply(
-        lambda x: x.year if 8 <= x.month <= 12 else x.year - 1)
+    pig_df['season'] = pig_df['game_date'].apply(get_season_from_date)
     # til_table = read_all_table(mycursor, TEAM_IN_LEAGUE_TABLE)
     # league_df = read_all_table(mycursor, LEAGUE_TABLE)
-    joined_df = pig_df.merge(player_df[['p_id', 'p_name']], how='left', left_on='player_id', right_on='p_id').merge(
-        til_table, left_on=['opponent_id', 'season'], right_on=['t_id', 'season_y'], how='left')
+    joined_df = pig_df.merge(player_df[['p_id', 'p_name_transfer']], how='left', left_on='player_id', right_on='p_id').merge(
+        til_table, left_on=['t_id', 'season'], right_on=['t_id', 'season_y'], how='left')
     col1_1, col2_1, col3_1 = st.columns(page_structure)
     btn_plot = False
     with col2_1:
@@ -162,7 +164,7 @@ def app():
             position = st.selectbox("Filter by position position", ['Select position', 'All positions'] + POSITIONS)
             if position != ALL_POSITIONS_STR:
                 joined_df = joined_df[joined_df['position'] == position]
-            all_players = joined_df['p_name'].value_counts()
+            all_players = joined_df['p_name_transfer'].value_counts()
             all_players = list(all_players[all_players > MIN_GAMES_TO_VIS].index)
             selected_players = st.multiselect(
                 'Select players',
@@ -202,7 +204,7 @@ def max_attributes(df_weights,pos, k):
     return df[['attribute', pos]]
 
 def get_player_stat_to_radar(joined_df,selected_player_name,params):
-    return joined_df[joined_df['p_name']==selected_player_name][params].mean().to_list()
+    return joined_df[joined_df['p_name_transfer']==selected_player_name][params].mean().to_list()
 
 def get_low_high_values_lists(first_player,second_player):
     low = []

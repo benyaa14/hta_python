@@ -317,13 +317,11 @@ def append_players_table_with_new_players(mycursor, player_table_name, temp_play
     existing_name_in_the_table = new_players_name & old_players_name
 
     # Assign id the the new players
-    if len(players_table) == 0 :#todo: to delete later
-        print(temp_players_df)
-        print(players_name_to_assign_new_id)
-        players_to_add = assign_id_to_new_players(0, temp_players_df,#todo: to delete later
-                                                  players_name_to_assign_new_id)#todo: to delete later
+    if len(players_table) == 0 :
+        players_to_add = assign_id_to_new_players(0, temp_players_df,
+                                                  players_name_to_assign_new_id)
 
-    else:    #todo: to delete later
+    else:
         players_to_add = assign_id_to_new_players(players_table['p_id'].max(), temp_players_df,
                                                   players_name_to_assign_new_id)
     new_player_table = pd.concat([players_table, players_to_add])
@@ -413,7 +411,7 @@ def get_all_new_team_table(new_updated_df, team_table):
     team_table = team_table[team_table['t_id'].isin(updated_ids) == False].copy()
     return pd.concat([team_table, new_updated_df]).drop(['t_name_instat_old'], axis=1)
 
-def create_new_team_table(team_table_name, players_in_game): # todo: write this func again
+def create_new_team_table(team_table_name, players_in_game):
     """
      The func will do following steps:
         1. Find the new teams, assign new id for each one of them and append the old teams dataframe
@@ -442,47 +440,7 @@ def create_new_team_table(team_table_name, players_in_game): # todo: write this 
     players_in_game.drop(['o_team_transfer', 't_name_transfer','opponent'], axis=1, inplace=True)
     disconnect_from_the_db(mycursor, mydb)
     return players_in_game, newly_added_teams,new_updated_df
-    #====OLD====
-    # mydb, mycursor = connect_to_the_DB()
-    # mycursor.execute(f"SELECT * FROM {team_table_name}")
-    # team_table = pd.DataFrame(mycursor.fetchall(), columns=mycursor.column_names)
-    # players_in_game.groupby("o_team_transfer").agg({})
-    #
-    #
-    #
-    # new_teams_name = set(
-    #     list(players_in_game['t_name_transfer'].unique()) + list(players_in_game['o_team_transfer'].unique()))
-    # cnt_matches_per_opponent_team_series = players_in_game.drop_duplicates(subset=['o_team_transfer','game_date'],keep='first')['o_team_transfer'].value_counts()
-    #
-    # old_teams_name = set(list(team_table['t_name_transfer'].unique()))
-    # new_teams_to_add = list(new_teams_name - old_teams_name)
-    # temp_teams_df = pd.DataFrame(new_teams_to_add, columns=['t_name_transfer'])
-    # # unique_players['p_name_instat'] = unique_players['p_name_transfer'].apply(lambda x: {i:1 for i in
-    # #                                                                                      list(all_players_df[all_players_df['p_name_transfer'] == x]['p_name'].unique() ) } )
-    # temp_teams_df['t_name_instat'] = temp_teams_df['t_name_transfer'].apply(lambda x:
-    #                                                                         json.dumps({i:1
-    #                                                                                     for i in
-    #                                                                                    list(players_in_game[players_in_game['o_team_transfer']==x]['opponent'])}))
-    #
-    # # temp_teams_df['t_name_instat'] = temp_teams_df['t_name_transfer'].apply(lambda x:update_the_count_of_matched_games_per_team(x,
-    # #                                                                                                                     team_table[team_table['t_name_transfer'] == x]['t_name_instat'],
-    # #                                                                                                                     list(players_in_game[players_in_game['o_team_transfer'] == x]['opponent']),
-    # #                                                                                                                     cnt_matches_per_opponent_team_series))
-    # if len(team_table)==0:# todo: delete later
-    #     assign_id_to_new_teams(0, temp_teams_df, new_teams_to_add, 't_id')# todo: delete later
-    # else: # todo: delete later
-    #
-    #     assign_id_to_new_teams(team_table['t_id'].max(), temp_teams_df, new_teams_to_add, 't_id')
-    # new_teams_table = pd.concat([team_table, temp_teams_df])
 
-    # players_in_game['opponent_id'] = players_in_game['o_team_transfer'].apply(
-    #     lambda x: get_team_id_from_team_name(x, new_teams_table))
-    # players_in_game['t_id'] = players_in_game['t_name_transfer'].apply(
-    #     lambda x: get_team_id_from_team_name(x, new_teams_table))
-    # players_in_game.drop(['o_team_transfer', 't_name_transfer','opponent'], axis=1, inplace=True)
-    # disconnect_from_the_db(mycursor, mydb)
-    # return players_in_game, temp_teams_df
-    #====OLD====
 
 def update_sql_table(table_name, df, index_col):
     engine = create_engine(f"mysql+pymysql://{USER}:{PASSWORD}@{HOST}/{DB}")
@@ -903,10 +861,13 @@ def run(players_file_name_list, mydb, mycursor, update_teams_and_leagues=False, 
     all_players_in_game_df_raw = read_many_tables_into_one(players_file_name_list) # todo uncomment later
     # all_players_in_game_df = all_players_in_game_df_raw.copy()#drop_existing_raw_player_in_game(all_players_in_game_df_raw)
     all_players_in_game_df = drop_existing_raw_player_in_game(all_players_in_game_df_raw,update_db=False)
+    # all_players_in_game_df_raw.to_csv('check_all_players_in_game_df_raw.csv')
+    # all_players_in_game_df.to_csv('check_all_players_in_game_df.csv')
 
     if len(all_players_in_game_df)==0:
         st.error("All raw data is already exist in the database")
         return
+
     # ========== 1) add transfer market team names for each game =======================================================
     all_players_in_game_df = get_best_match_from_the_existing_game_on_date(all_players_in_game_df)
     all_players_in_game_df_missing_transfer_teams = all_players_in_game_df[all_players_in_game_df['o_team_transfer'].isnull()].copy()
@@ -946,8 +907,6 @@ def run(players_file_name_list, mydb, mycursor, update_teams_and_leagues=False, 
 
     unique_players_df_missing_transfer_players = unique_players_df[unique_players_df['p_name_transfer'].isnull()].copy()
 
-    # unique_players_df = unique_players_df[(unique_players_df['p_name_transfer'].notnull()) &
-    #                                       (unique_players_df['p_name_transfer_matching_score']>=MIN_PLAYER_MATCHING_SCORE)].copy()
     unique_players_df = unique_players_df[(unique_players_df['p_name_transfer'].notnull())].copy()
 
 
@@ -972,7 +931,6 @@ def run(players_file_name_list, mydb, mycursor, update_teams_and_leagues=False, 
     problematic_player_in_game = pd.concat([
         all_players_in_game_df[all_players_in_game_df['p_name'].isin(list(problematic_players_df['p_name'].unique()))]
         , all_players_in_game_df_missing_transfer_teams])
-    # all_players_in_game_df = all_players_in_game_df[all_players_in_game_df['p_name'].isin(list(problematic_players_df['p_name'].unique()))==False].copy()
 
     players_df = create_new_players_table(all_players_in_game_df)
     new_player_table, all_players_in_game_df, new_players_to_add_ids_list = append_players_table_with_new_players(
@@ -1002,16 +960,7 @@ def run(players_file_name_list, mydb, mycursor, update_teams_and_leagues=False, 
 
     # Update team in league table
     teams_to_match_league = get_teams_to_match_league(tmp_table_to_insert)
-    # ==== OLD =====
-    # til_df = read_all_table(mycursor,TEAM_IN_LEAGUE_TABLE)
-    # team_ids_without_league_in_til = get_set_teams_without_match_to_league(tmp_table_to_insert, til_df)
-    # t_id_to_update_season = get_set_teams_without_match_to_league_in_the_current_season(til_df)
-    # teams_to_match_league = list(team_ids_without_league_in_til | t_id_to_update_season)
-    # if dt.datetime.now().month == 8: # it takes time for transfermarket to update the league. so, if it's the beginning of august we should read the last season
-    #     teams_to_match_league = list(team_ids_without_league_in_til)
-    # print("Teams to match league:")
-    # print(teams_to_match_league)
-    # print("***")
+
 
 
     # # Update tables
@@ -1023,7 +972,6 @@ def run(players_file_name_list, mydb, mycursor, update_teams_and_leagues=False, 
         st.info("Updated TEAM_TABLE t_name_instat column")
         update_sql_table(PLAYER_TABLE, new_player_table_updated_positions_count_new_players_to_append, 'p_id')
         st.info("Updated PLAYER_TABLE")
-        # update_sql_table(PLAYER_IN_GAME_TABLE, player_in_game_to_insert_sql[player_in_game_to_insert_sql['player_id'].isin(PROBLEMATIC_PLAYERS) == False], ['player_id', 'game_date'])
         update_sql_table(PLAYER_IN_GAME_TABLE, player_in_game_to_insert_sql, ['player_id', 'game_date'])
 
         st.info("Updated PLAYER_IN_GAME_TABLE")
@@ -1036,7 +984,6 @@ def run(players_file_name_list, mydb, mycursor, update_teams_and_leagues=False, 
             tr.run_team_in_league_matching(team_ids=teams_to_match_league)
         st.success("Updated DB")
         st.subheader('The new updated data:')
-        st.write(player_in_game_to_insert_sql)
         end = time.time()
         drop_existing_raw_player_in_game(all_players_in_game_df_raw, update_db=True)
         print("Total time=",end - startt)
@@ -1066,7 +1013,7 @@ def get_list_of_players_to_check():
     instat_gt_1 = list(instat_gt_1[instat_gt_1].index)
     multiple_players = player_table[
         (player_table['p_name_transfer'].isin(transfer_gt_1)) | (player_table['p_name_instat'].isin(instat_gt_1)) | (
-                    player_table['p_name_transfer_matching_score'] < 60)]
+                    player_table['p_name_transfer_matching_score'] < 60) | (player_table['p_name_transfer'].isnull())]
     list_of_players = tuple(multiple_players['p_id'].to_list())
     query = f"""SELECT p.p_id, p.p_name_instat ,p.p_name_transfer ,p.p_name_transfer_matching_score ,t.t_name_instat ,t.t_name_transfer,pig.position,pig.game_date
               FROM player p, player_in_game pig, teams t
@@ -1080,6 +1027,7 @@ def get_list_of_players_to_check():
     return multiple_players.set_index(['p_id']).drop('position', axis=1).join(gb_res, how='outer')
 
 def show_problematic_datasets_for_download(key = 'download-csv'):
+    # todo : if there is a new line in the file : alert
     problematic_players_df_calculation = get_list_of_players_to_check()
     st.session_state['problematic_players_df_calculation'] = problematic_players_df_calculation
     for problematic_str in ['problematic_player_in_game', 'problematic_players_df','problematic_players_df_calculation']:
@@ -1215,11 +1163,16 @@ def app():
                 run_team_fix()
                 mydb,mycursor = connect_to_the_DB()
                 pig_df = read_all_table(mycursor,PLAYER_IN_GAME_TABLE)
+                teams_to_tag_manualy = tuple(list(read_all_table(mycursor,TIL_TO_TAG_MANUALLY)['index'].unique()))
+                query = f"select t_id from teams where t_name_transfer in {teams_to_tag_manualy}"
+                t_ids = read_from_table(mycursor, 'f', query)['t_id'].to_list()
                 teams_to_match_league = get_teams_to_match_league(pig_df)
+
+                teams_to_match_league = [i for i in teams_to_match_league if i not in t_ids]
                 teams_to_match_league = list(pig_df[pig_df['opponent_id'].isin(teams_to_match_league)]['opponent_id'].value_counts().index)
                 print(teams_to_match_league)
                 if len(teams_to_match_league) > 0 :
-                    tr.run_team_in_league_matching(team_ids=teams_to_match_league) # todo: drop [:100]
+                    tr.run_team_in_league_matching(team_ids=teams_to_match_league)
                 disconnect_from_the_db(mycursor,mydb)
                 st.success("Done!")
 

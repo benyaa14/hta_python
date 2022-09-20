@@ -12,6 +12,7 @@ from main_functions import *
 from main import page_structure, show_st_image
 from config import *
 
+
 now = dt.datetime.now().date()
 
 
@@ -24,11 +25,13 @@ def get_leagues_without_correction(df):
 
 
 def app():
-    mydb = mysql.connector.connect(
-        host=HOST, user=USER, password=PASSWORD, database=DB
-    )
-    mycursor = mydb.cursor()
+    mydb,mycursor = connect_to_the_DB()
     df_league = read_all_table(mycursor, LEAGUE_TABLE)
+    if 'all_games' in st.session_state:
+        all_games = st.session_state['all_games']
+    else:
+        all_games = read_all_table(mycursor, PLAYER_IN_GAME_TABLE)
+
     # ----------NAVBAR---------
     st.markdown(HEADER, unsafe_allow_html=True)
 
@@ -58,7 +61,7 @@ def app():
             btn_res = st.checkbox('Update DB')
             btn_reg = st.button('Run regression algorithm')
     if btn_reg:
-        correction_to_il, l_id = lr.run_regression_app_test(mydb, mycursor, league, position, btn_res)
+        correction_to_il, l_id = lr.run_regression_app_test(mydb, mycursor, league, position,all_games, btn_res)
         if position != ALL_POSITIONS_STR and correction_to_il is not False:
             st.success(f"Correction = {round(correction_to_il, 3)} || League = '{league}' || Position = {position}")
         elif position == ALL_POSITIONS_STR:

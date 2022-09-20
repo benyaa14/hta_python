@@ -6,7 +6,7 @@ from sympy.solvers import solve
 from sympy import Symbol
 import streamlit as st
 from main_functions import *
-
+from main_new import get_season_from_date
 # # If config works - delete------------------
 # INSTAT_INDEX = 'instat_index'
 # SELECTION_ERROR = 'selection_error'
@@ -73,11 +73,11 @@ def find_diff_x_axis(slop_il_league, const_il_league, const_new_league):
     return diff_x
 
 
-def show_regression(all_games_df, league_id, position_id, plot_to_ui, ipl_league_id=0, ligat_haal_name="Ligat ha'Al"):
+def show_regression(all_games_df, league_id, position_id, plot_to_ui, ipl_league_id=1, ligat_haal_name="Ligat ha'Al"):
     position_df = all_games_df[
         (all_games_df['position'] == position_id) & (all_games_df['l_id'].isin([league_id, ipl_league_id]))].copy()
 
-    print(len(position_df[position_df['l_id'] == league_id]))
+
     if len(position_df[position_df['l_id'] == league_id]) < MIN_GAMES:
         st.error('There are not enough games in this league for this position in order to make regression')
         return False
@@ -131,11 +131,12 @@ def show_regression(all_games_df, league_id, position_id, plot_to_ui, ipl_league
 def run_regression_correction_to_il(league, position, leagues: pd.DataFrame, all_games: pd.DataFrame,
                                     til_table: pd.DataFrame, plot_to_ui):
     l_id = leagues[leagues['l_name'] == league][LEAGUE_ID_COL].iloc[0]
-    all_games['season'] = all_games['game_date'].apply(
-        lambda x: x.year if 8 <= x.month <= 12 else x.year - 1)  # Create year column to merge with team_in_league table
-    all_games_with_league = all_games.merge(til_table, left_on=['opponent_id', 'season'], right_on=['t_id', 'season_y'],
+    # missing_leagues = leagues[leagues['correction_to_il'].isnull()]['l_id'].to_list()
+    all_games['season'] = all_games['game_date'].apply(get_season_from_date)
+    all_games_with_league = all_games.merge(til_table, left_on=['t_id', 'season'], right_on=['t_id', 'season_y'],
                                             how='left').merge(leagues[[LEAGUE_ID_COL, 'l_name']], how='left', on='l_id')
-
+    # league_vc = all_games_with_league[all_games_with_league['l_id'].isin(missing_leagues)]['l_name'].value_counts()
+    # st.write(league_vc.head(5))
     correction_to_il = show_regression(all_games_with_league, l_id, position, plot_to_ui=plot_to_ui)
 
     return correction_to_il, l_id
@@ -160,13 +161,12 @@ def apply_regression_to_db(mydb, mycursor, correction_to_il, l_id, position):
         print(f"'{position}' position: There is not correction to il")
 
 
-def run_regression_app_test(mydb, mycursor, league, position, update_db=False):
+def run_regression_app_test(mydb, mycursor, league, position,all_games, update_db=False):
     if league == MAIN_LEAGUE:
         st.error("Please change the league")
         return False, False
     leagues = read_all_table(mycursor, LEAGUE_TABLE)
-    all_games = read_all_table(mycursor, PLAYER_IN_GAME_TABLE)
-    weights = read_all_table(mycursor, LIKELIHOOD_WEIGHTS_TABLE) # todo: changed to likelihood weights --> test it
+    weights = read_all_table(mycursor, LIKELIHOOD_WEIGHTS_TABLE)
     til_table = read_all_table(mycursor, TEAM_IN_LEAGUE_TABLE)
     weights.replace('Ñ\x81hances_created', 'сhances_created', inplace=True)
     if 'Select' in league or 'Select' in position:

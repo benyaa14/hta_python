@@ -38,11 +38,11 @@ def app():
                 'cnt'].iloc[0]
 
             st.write(f'The algorithm will rank players without any rank. ({cnt_games_with_no_rank} games)')
-            btn_rank_all_players = st.checkbox(
-                'Would you like to rank all players to the DB? (this action could take few moments)')
+            # btn_rank_all_players = st.checkbox(
+            #     'Would you like to rank all players to the DB? (this action could take few moments)')
             btn_rank = st.button('Run ranking algorithm')
             if btn_rank:
-                num_of_records_updated = rp.run_rate_players_app(btn_rank_all_players)
+                num_of_records_updated = rp.run_rate_players_app() # todo: the algo will rank all players make sure when we will finish the work on this part
                 st.success(f"{num_of_records_updated} records were updated")
     mydb.close()
 

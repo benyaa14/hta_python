@@ -7,12 +7,13 @@ st.set_page_config(layout="wide")
 import home as h
 # import main as upload_player_in_game
 import main_new as upload_player_in_game
-# import weights_app as wa
-# import rank_app as ra
-# import reg_app as rea
+import weights_app as wa
+import rank_app as ra
+import reg_app as rea
 # import db_manual_updates as dbmu
-# import players_comparison_app as pca
-# import update_player_team_league as uptl
+import players_comparison_app as pca
+import update_player_team_league as uptl
+import players_of_interest as poi
 # import optimization_inputs as oi
 from streamlit_option_menu import option_menu
 
@@ -58,10 +59,13 @@ app = MultiApp()
 
 app.add_app("Home",h.app)
 app.add_app("Upload player in game files", upload_player_in_game.app)
-# app.add_app("Update weights", wa.app)
-# app.add_app("Rank players", ra.app)
-# app.add_app("Run regression", rea.app)
-# app.add_app("Players ranking comparison", pca.app)
+app.add_app("Update weights", wa.app)
+app.add_app("Rank players", ra.app)
+app.add_app("Run regression", rea.app)
+app.add_app("Players ranking comparison", pca.app)
+app.add_app("POI", poi.app)
+
+
 # app.add_app("Update DB manually", dbmu.app)
 # app.add_app("Update player table", uptl.app)
 # app.add_app("Optimization model", oi.app)
