@@ -44,6 +44,9 @@ LEAGUE_ID_COL = 'l_id'
 POSITIONS = ["LD", "LM", "RM", "RD", "DM", "CM", "CD", "F"]
 
 MAIN_LEAGUE = "Ligat ha'Al"
+MAIN_NATIONALITY = 'Israel'
+MAIN_TEAM = 'Hapoel Tel Aviv'
+MAIN_TEAM_ID = 11
 
 DICT_TRANSFERMARKET_POS_TO_INSTAT_POS = {'Goalkeeper':'GK','Centre-Back':'CD','Left-Back':'LD','Right-Back':'RD','Defensive Midfield':'DM','Central Midfield':'CM',
                          'Attacking Midfield':'CM','Left Winger':'LM','Right Winger':'RM','Centre-Forward':'F','midfield':'CM','Left Midfield':'LM',

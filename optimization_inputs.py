@@ -311,10 +311,10 @@ def visualize_results(candidates_df,opt_players,budget,m1,df_optimal_teams,playe
     candidates_df = candidates_df.round(3)
     candidates_df['in_optimal_solution'] = candidates_df['p_name'].apply(lambda x: x in opt_players)
     players_to_buy_df = candidates_df[
-        (candidates_df['in_optimal_solution'] == 1) & (candidates_df['t_id'] != 12)].copy()
+        (candidates_df['in_optimal_solution'] == 1) & (candidates_df['t_id'] != your_team_id)].copy()
     players_to_sell_df = candidates_df[
-        (candidates_df['in_optimal_solution'] == 0) & (candidates_df['t_id'] == 12)].copy()
-    cols_to_vis = ['p_name','position','market_value','p_rank','age','is_foreign']
+        (candidates_df['in_optimal_solution'] == 0) & (candidates_df['t_id'] == your_team_id)].copy()
+    cols_to_vis = ['p_name','position','market_value','p_rank','DOB','is_foreign']
 
     expenses = players_to_buy_df['market_value'].sum()
     revenues = players_to_sell_df['market_value'].sum()
@@ -490,7 +490,7 @@ def plot_pitch(df):
 #         with cont_button:
 #             visualize_results(candidates_df,opt_players,budget,model,df_optimal_teams,players_to_check,your_team_id)
 
-def app(your_team_id = 12):
+def app(your_team_id = MAIN_TEAM_ID):
     cola, colb, colc = st.columns(page_structure)
     # ----------NAVBAR---------
     st.markdown(HEADER, unsafe_allow_html=True)
@@ -507,6 +507,7 @@ def app(your_team_id = 12):
         IS_IN_TEAM = candidates_df[candidates_df['t_id'] == your_team_id]['p_name'].to_list()
         NOT_IN_TEAM = candidates_df[candidates_df['p_name'].isin(IS_IN_TEAM) == False]['p_name'].to_list()
         VETO_PLAYERS = st.multiselect('Pick up your "veto" players', IS_IN_TEAM)
+        # todo: add to veto players withon p_rank --> p_rank = 0 ; non veto without p_rank --> p_rank = -200
     form = st.form("optimize_form_inputs")
     with colb:
         header = form.container()

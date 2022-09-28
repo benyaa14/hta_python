@@ -980,7 +980,7 @@ def run(players_file_name_list, mydb, mycursor, update_teams_and_leagues=False, 
                                                  new_players_to_add_ids_list)
         st.info("Updated PLAYER_TABLE all_positions column")
         st.info("Updating TEAM_IN_LEAGUE")
-        if len(teams_to_match_league) > 0:
+        if len(teams_to_match_league) > 0 and update_teams_and_leagues:
             tr.run_team_in_league_matching(team_ids=teams_to_match_league)
         st.success("Updated DB")
         st.subheader('The new updated data:')
@@ -1172,7 +1172,9 @@ def app():
                 teams_to_match_league = list(pig_df[pig_df['opponent_id'].isin(teams_to_match_league)]['opponent_id'].value_counts().index)
                 print(teams_to_match_league)
                 if len(teams_to_match_league) > 0 :
-                    tr.run_team_in_league_matching(team_ids=teams_to_match_league)
+
+                    # tr.run_team_in_league_matching(team_ids=teams_to_match_league)todo: uncomment
+                    pass
                 disconnect_from_the_db(mycursor,mydb)
                 st.success("Done!")
 

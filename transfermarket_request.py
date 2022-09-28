@@ -233,6 +233,49 @@ def run_team_in_league_matching(team_ids: list = [] ,years_lookback=3):
     print('------------')
 
 
+def get_players_name_from_team_name(team):
+    pattern = '[a-zA-Z0-9,.]+'
+    headers = {'User-Agent':
+                   'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36'}
+    team_str = team.lower().replace(' ', '+')
+    page = "https://www.transfermarkt.co.uk/schnellsuche/ergebnis/schnellsuche?query=" + team_str
+    pageTree = requests.get(page, headers=headers)
+    pageSoup = BeautifulSoup(pageTree.content, 'html.parser')
+    teams = pageSoup.find_all("td", {"class": "hauptlink"})
+    first_teams_a = str(teams[0].find_all("a")[0])
+    idx_start = first_teams_a.find('a href=') + len('a href="')
+    team_url = first_teams_a[idx_start:].split(" ")[0][:-1]
+    page = "https://www.transfermarkt.co.uk" + team_url
+    pageTree = requests.get(page, headers=headers)
+    pageSoup = BeautifulSoup(pageTree.content, 'html.parser')
+    match = []
+    records = pageSoup.find_all("td", {"class": "posrela"})
+    records_market_value = pageSoup.find_all("td", {"class": "rechts hauptlink"})
+    records_nationality = pageSoup.find_all("td", {"class": "zentriert"})
+
+    for rec, rec_market_value, rec_nations in zip(records, records_market_value, records_nationality):
+        dff = pd.read_html(str(rec))[0][1]
+        name = dff.values[0]
+        # pos = dff.values[1]
+        full_name = name.split('.')[0][:-1]
+
+
+        # market_value_raw = rec_market_value.text
+        # str_market_value = "".join(re.findall(pattern, str(market_value_raw)))
+
+        # nationalities = rec_nations.find_all("img", {"class": "flaggenrahmen"})
+        # nation_list = []
+        # for nation in nationalities:
+        #     nation = nation['title']
+        #     nation = "".join(re.findall(pattern, str(nation)))
+        #     nation_list.append(nation)
+        # nations = ",".join(nation_list)
+        # match.append([full_name, pos, str_market_value, nations])
+        match.append(full_name)
+
+
+
+    return match
 
 
 
@@ -266,25 +309,47 @@ def get_player_data(player: str):
     pageTree = requests.get(page, headers=headers)
     pageSoup = BeautifulSoup(pageTree.content, 'html.parser')
     # return pageSoup
-    key = pageSoup.find_all("span", {"class": "info-table__content info-table__content--regular"})
-    value = pageSoup.find_all("span", {"class": "info-table__content info-table__content--bold"})
+    table = pageSoup.find_all("div",{"class": "large-6 large-pull-6 small-12 columns spielerdatenundfakten"})
     data_dict = dict()
-    # take the data to a dict
-    for i in range(len(key)):
-        # if str(key[i].text).strip() not in ('Name in home country:','Height:','Citizenship:'):#todo:delete this row later
-        data_dict[str(key[i].text).strip()[:-1]] = " ".join(
-            re.findall(pattern, str(value[i].text).strip().replace("'", '')))
-    if len(data_dict) == 0:
-        return None
-    team = pageSoup.find_all("span", {"class": "hauptpunkt"})
-    if len(team) > 0:
-        data_dict['team'] = team[0].text
-    market_val = pageSoup.find_all("div", {"class": "data-header__box--small"})
-    if len(market_val) > 0:
-        market_val = market_val[0].text.strip().split()[0]
-        market_val = re.findall(pattern, market_val)[0]
-        data_dict['market_value'] = market_val
+    if len(table)>0:
+        table = table[0]
+
+        data_player = [i.text.strip() for i in table.find_all('span')[1:]]
+        for key, value in zip(data_player[:-1], data_player[1:]):
+            if ':' in key:
+                data_dict[key[:-1]] = value.replace(u'\xa0', u' ')
+        market_val = pageSoup.find_all("div", {"class": "data-header__box--small"})
+        if len(market_val) > 0:
+            market_val = market_val[0].text.strip().split()[0]
+            market_val = re.findall(pattern, market_val)[0]
+            data_dict['market_value'] = market_val
     return data_dict
+    # key = pageSoup.find_all("span", {"class": "info-table__content info-table__content--regular"})
+    # value = pageSoup.find_all("span", {"class": "info-table__content info-table__content--bold"})
+    # data_dict = dict()
+    # # take the data to a dict
+    # print(len(key))
+    # print(value)
+    # print([str(key[i].text).strip()[:-1] for i in range(len(key))])
+    # print([str(value[i].text).strip() for i in range(len(value))])
+    # for i in range(min(len(key),len(value))):
+    #
+    #     # print(str(key[i].text).strip()[:-1])
+    #     # print(str(value[i].text).strip().replace("'", ''))
+    #     # if str(key[i].text).strip() not in ('Name in home country:','Height:','Citizenship:'):#todo:delete this row later
+    #     data_dict[str(key[i].text).strip()[:-1]] = " ".join(
+    #         re.findall(pattern, str(value[i].text).strip().replace("'", '')))
+    # if len(data_dict) == 0:
+    #     return None
+    # team = pageSoup.find_all("span", {"class": "hauptpunkt"})
+    # if len(team) > 0:
+    #     data_dict['team'] = team[0].text
+    # market_val = pageSoup.find_all("div", {"class": "data-header__box--small"})
+    # if len(market_val) > 0:
+    #     market_val = market_val[0].text.strip().split()[0]
+    #     market_val = re.findall(pattern, market_val)[0]
+    #     data_dict['market_value'] = market_val
+    # return data_dict
 
 
 def find_all_teams_in_league(league_name):
@@ -450,3 +515,12 @@ def find_all_players_with_pos_in_team(team):
 #     if len(market_val) > 0:
 #         data_dict['market_value'] = market_val[0].text.strip().split()[0]
 #     return data_dict
+
+
+# sample usage
+
+# data_dict = get_player_data("Dolev Haziza")
+# print(data_dict)
+
+# print(get_players_name_from_team_name(MAIN_TEAM))
+

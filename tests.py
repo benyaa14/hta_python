@@ -14,7 +14,7 @@ import reg_app as rea
 import players_comparison_app as pca
 import update_player_team_league as uptl
 import players_of_interest as poi
-# import optimization_inputs as oi
+import optimization_inputs as oi
 from streamlit_option_menu import option_menu
 
 
@@ -68,7 +68,7 @@ app.add_app("POI", poi.app)
 
 # app.add_app("Update DB manually", dbmu.app)
 # app.add_app("Update player table", uptl.app)
-# app.add_app("Optimization model", oi.app)
+app.add_app("Optimization model", oi.app)
 
 
 
