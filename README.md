@@ -13,9 +13,9 @@ The model uses a scoring method to rank each player in each game according to th
 
 # Features
 <li> Fuses data to an autonomous DB</li>
-Identifies each event's significance in a match, given the position in the field
-Concludes each significant event to create a sophisticated weight, computed by the BORUTA algorithm's output
-Adjusts the weights to correspond to the coaching staff's prior needs using a Bayesian ML model
-Ranks each player in each game according to the weights using a scoring method
-Incorporates an optimization model that considers financial and other constraints and professional scores
-Utilizes a simple UI to merge all the above capabilities into one compact and essential system
+<li> Identifies each event's significance in a match, given the position in the field</li>
+<li> Concludes each significant event to create a sophisticated weight, computed by the BORUTA algorithm's output</li>
+<li> Adjusts the weights to correspond to the coaching staff's prior needs using a Bayesian ML model</li>
+<li> Ranks each player in each game according to the weights using a scoring method</li>
+<li> Incorporates an optimization model that considers financial and other constraints and professional scores</li>
+<li> Utilizes a simple UI to merge all the above capabilities into one compact and essential system</li>
