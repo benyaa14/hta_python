@@ -10,7 +10,7 @@ We created an optimization model that takes the club's internal and open-source 
 
 The model uses a scoring method to rank each player in each game according to the weights and incorporates an optimization model that considers financial and other constraints and professional scores. The model output is of the optimal team and other outcomes that will support the club's strategic decisions. Our model utilizes a simple UI to merge all the above capabilities into one compact and essential system.
 
-![My Image](.regression_img.png)
+![My Image](./regression_img.png)
 # Features
 <li> Fuses data to an autonomous DB</li>
 <li> Identifies each event's significance in a match, given the position in the field</li>
