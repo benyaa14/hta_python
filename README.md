@@ -2,6 +2,8 @@
 # opTEAMize
 This project presents a solution to optimize the scouting process of a football club, particularly in the case of the Hapoel-Tel-Aviv football club in the Israeli Premier League. The objective is to create an optimization model that will analyze players' performance and consider the club's constraints to find the optimal squad for the club.
 
+![The final output of the application. The optimal team enriched with economoc data and other alternatives](./final_output.png)
+
 # Problem Statement
 The scouting process of a football club is subjective and time-consuming, which can lead to different outputs depending on the analyst's insights. Additionally, frequent alternations of the squad's players imply challenging procurement settings, and the team's rank doesn't correlate with the club's expectations and budget. The input is not embedded enough to get enriched insights as an output.
 
