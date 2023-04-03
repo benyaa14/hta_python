@@ -10,13 +10,13 @@ We created an optimization model that takes the club's internal and open-source 
 
 The model uses a scoring method to rank each player in each game according to the weights and incorporates an optimization model that considers financial and other constraints and professional scores. The model output is of the optimal team and other outcomes that will support the club's strategic decisions. Our model utilizes a simple UI to merge all the above capabilities into one compact and essential system.
 
-![My Image](./regression_img.png)
+
 # Features
 <li> Fuses data to an autonomous DB</li>
 <li> Identifies each event's significance in a match, given the position in the field</li>
 <li> Concludes each significant event to create a sophisticated weight, computed by the BORUTA algorithm's output</li>
 <li> Adjusts the weights to correspond to the coaching staff's prior needs using a Bayesian ML model</li>
 <li> Ranks each player in each game according to the weights using a scoring method</li>
-
+![My Image](./regression_img.png)
 <li> Incorporates an optimization model that considers financial and other constraints and professional scores</li>
 <li> Utilizes a simple UI to merge all the above capabilities into one compact and essential system</li>
